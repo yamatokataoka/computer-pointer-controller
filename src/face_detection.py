@@ -74,11 +74,15 @@ class Face_Detection_Model:
             exit(1)
 
     def preprocess_input(self, image):
-    '''
-    Before feeding the data into the model for inference,
-    you might have to preprocess it. This function is where you can do that.
-    '''
-        raise NotImplementedError
+        '''
+        Before feeding the data into the model for inference,
+        preprocess image.
+        '''
+        p_frame = cv2.resize(image, (self.input_shape[3], self.input_shape[2]))
+        p_frame = p_frame.transpose((2,0,1))
+        p_frame = p_frame.reshape(1, *p_frame.shape)
+
+        return p_frame
 
     def preprocess_output(self, outputs):
     '''
