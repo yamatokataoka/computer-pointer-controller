@@ -3,23 +3,57 @@ This is a sample class for a model. You may choose to use it as-is or make any c
 This has been provided just to give you an idea of how to structure your model class.
 '''
 
-class Model_X:
+class Face_Detection_Model:
     '''
     Class for the Face Detection Model.
     '''
     def __init__(self, model_name, device='CPU', extensions=None):
         '''
-        TODO: Use this to set your instance variables.
+        set your instance variables.
         '''
-        raise NotImplementedError
+        self.model_name = model_name
+        self.device = device
+        self.extensions = extensions
+        self.plugin = None
+        self.network = None
+        self.input_blob = None
+        self.output_blob = None
+        self.exec_network = None
 
     def load_model(self):
-        '''
-        TODO: You will need to complete this method.
-        This method is for loading the model to the device specified by the user.
-        If your model requires any Plugins, this is where you can load them.
-        '''
-        raise NotImplementedError
+        ### Load the Inference Engine API
+        self.plugin = IECore()
+
+        ### Load the model
+        model_xml = self.model_name
+        model_bin = os.path.splitext(model_xml)[0] + ".bin"
+        self.network = IENetwork(model=model_xml, weights=model_bin)
+
+        ### Add a CPU extension, if applicable
+        if self.extensions and "CPU" in self.device:
+            self.plugin.add_extension(self.extensions, self.device)
+
+        ### Check for supported layers
+        supported_layers = self.plugin.query_network(network=self.network, device_name=self.device)
+
+        ### Check for any unsupported layers, and let the user
+        ### know if anything is missing. Exit the program, if so.
+        unsupported_layers = [l for l in self.network.layers.keys() if l not in supported_layers]
+        if len(unsupported_layers) != 0:
+            log.warn("Unsupported layers found: {}".format(unsupported_layers))
+            log.warn("Check whether extensions are available to add to IECore.")
+            exit(1)
+
+        ### Load the model network into a self.plugin variable
+        self.exec_network = self.plugin.load_network(self.network, self.device)
+
+        log.info("IR successfully loaded into Inference Engine.")
+
+        ### Get the input and output layer
+        self.input_blob = next(iter(self.network.inputs))
+        self.output_blob = next(iter(self.network.outputs))
+
+        return
 
     def predict(self, image):
         '''
