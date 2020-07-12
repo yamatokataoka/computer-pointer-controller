@@ -26,20 +26,8 @@ class Face_Detection_Model:
         model_bin = os.path.splitext(model_xml)[0] + ".bin"
         self.network = IENetwork(model=model_xml, weights=model_bin)
 
-        ### Add a CPU extension, if applicable
-        if self.extensions and "CPU" in self.device:
-            self.plugin.add_extension(self.extensions, self.device)
-
-        ### Check for supported layers
-        supported_layers = self.plugin.query_network(network=self.network, device_name=self.device)
-
-        ### Check for any unsupported layers, and let the user
-        ### know if anything is missing. Exit the program, if so.
-        unsupported_layers = [l for l in self.network.layers.keys() if l not in supported_layers]
-        if len(unsupported_layers) != 0:
-            log.warn("Unsupported layers found: {}".format(unsupported_layers))
-            log.warn("Check whether extensions are available to add to IECore.")
-            exit(1)
+        ### Check model extesions and any unsupported layers
+        self.check_model()
 
         ### Load the model network into a self.plugin variable
         self.exec_network = self.plugin.load_network(self.network, self.device)
@@ -67,7 +55,23 @@ class Face_Detection_Model:
         return output_image
 
     def check_model(self):
-        raise NotImplementedError
+        '''
+        Check adding extensions and any unsupported layers
+        '''
+        ### Add a CPU extension, if applicable
+        if self.extensions and "CPU" in self.device:
+            self.plugin.add_extension(self.extensions, self.device)
+
+        ### Check for supported layers
+        supported_layers = self.plugin.query_network(network=self.network, device_name=self.device)
+
+        ### Check for any unsupported layers, and let the user
+        ### know if anything is missing. Exit the program, if so.
+        unsupported_layers = [l for l in self.network.layers.keys() if l not in supported_layers]
+        if len(unsupported_layers) != 0:
+            log.warn("Unsupported layers found: {}".format(unsupported_layers))
+            log.warn("Check whether extensions are available to add to IECore.")
+            exit(1)
 
     def preprocess_input(self, image):
     '''
