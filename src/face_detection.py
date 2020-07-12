@@ -2,7 +2,7 @@ class Face_Detection_Model:
     '''
     Class for the Face Detection Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, device='CPU', extensions=None, threshold=0.6):
         '''
         set instance variables.
         '''
@@ -16,6 +16,7 @@ class Face_Detection_Model:
         self.input_shape = None
         self.output_name = None
         self.output_shape = None
+        self.threshold=threshold
 
     def load_model(self):
         ### Load the Inference Engine API
@@ -50,9 +51,9 @@ class Face_Detection_Model:
         self.exec_network.infer(input_dict)
 
         outputs = self.exec_network.requests[0].outputs[self.output_name]
-        output_image = self.preprocess_output(outputs)
+        outputs = self.preprocess_output(outputs)
 
-        return output_image
+        return outputs
 
     def check_model(self):
         '''
@@ -85,8 +86,11 @@ class Face_Detection_Model:
         return p_frame
 
     def preprocess_output(self, outputs):
-    '''
-    Before feeding the output of this model to the next model,
-    you might have to preprocess the output. This function is where you can do that.
-    '''
-        raise NotImplementedError
+        '''
+        Before feeding the output of this model to the next model,
+        preprocess the output.
+        '''
+        outputs = outputs[0][0]
+        outputs[outputs[2] >= self.threshold]
+
+        return outputs
