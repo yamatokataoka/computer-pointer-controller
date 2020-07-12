@@ -1,3 +1,8 @@
+import os
+import sys
+import logging as log
+from openvino.inference_engine import IENetwork, IECore
+
 class Face_Detection_Model:
     '''
     Class for the Face Detection Model.
