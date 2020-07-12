@@ -16,9 +16,11 @@ class Face_Detection_Model:
         self.extensions = extensions
         self.plugin = None
         self.network = None
-        self.input_blob = None
-        self.output_blob = None
         self.exec_network = None
+        self.input_name = None
+        self.input_shape = None
+        self.output_name = None
+        self.output_shape = None
 
     def load_model(self):
         ### Load the Inference Engine API
@@ -49,18 +51,27 @@ class Face_Detection_Model:
 
         log.info("IR successfully loaded into Inference Engine.")
 
-        ### Get the input and output layer
-        self.input_blob = next(iter(self.network.inputs))
-        self.output_blob = next(iter(self.network.outputs))
+        ### Get the input and output information
+        self.input_name = next(iter(self.model.inputs))
+        self.input_shape = self.model.inputs[self.input_name].shape
+        self.output_name = next(iter(self.model.outputs))
+        self.output_shape = self.model.outputs[self.output_name].shape
 
         return
 
     def predict(self, image):
         '''
-        TODO: You will need to complete this method.
         This method is meant for running predictions on the input image.
         '''
-        raise NotImplementedError
+        input_image = self.preprocess_input(image)
+
+        input_dict={self.input_name:input_image}
+        self.exec_network.infer(input_dict)
+
+        outputs = self.exec_network.requests[0].outputs[self.output_name]
+        output_image = self.preprocess_output(outputs)
+
+        return output_image
 
     def check_model(self):
         raise NotImplementedError
