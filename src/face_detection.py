@@ -1,9 +1,10 @@
 import os
 import sys
 import logging as log
+import cv2
 from openvino.inference_engine import IENetwork, IECore
 
-class Face_Detection_Model:
+class Face_Detection:
     '''
     Class for the Face Detection Model.
     '''
@@ -41,10 +42,10 @@ class Face_Detection_Model:
         log.info("IR successfully loaded into Inference Engine.")
 
         ### Get the input and output information
-        self.input_name = next(iter(self.model.inputs))
-        self.input_shape = self.model.inputs[self.input_name].shape
-        self.output_name = next(iter(self.model.outputs))
-        self.output_shape = self.model.outputs[self.output_name].shape
+        self.input_name = next(iter(self.network.inputs))
+        self.input_shape = self.network.inputs[self.input_name].shape
+        self.output_name = next(iter(self.network.outputs))
+        self.output_shape = self.network.outputs[self.output_name].shape
 
     def predict(self, image):
         '''
@@ -96,6 +97,6 @@ class Face_Detection_Model:
         preprocess the output.
         '''
         outputs = outputs[0][0]
-        outputs[outputs[2] >= self.threshold]
+        outputs[outputs[:, 2] >= self.threshold]
 
         return outputs
