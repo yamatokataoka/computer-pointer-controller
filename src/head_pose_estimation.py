@@ -1,9 +1,10 @@
 import os
 import sys
 import logging as log
+import cv2
 from openvino.inference_engine import IENetwork, IECore
 
-class Head_Pose_Estimation_Model:
+class Head_Pose_Estimation:
     '''
     Class for the Head Pose Estimation Model.
     '''
@@ -39,8 +40,8 @@ class Head_Pose_Estimation_Model:
         log.info("IR successfully loaded into Inference Engine.")
 
         ### Get the input information
-        self.input_name = next(iter(self.model.inputs))
-        self.input_shape = self.model.inputs[self.input_name].shape
+        self.input_name = next(iter(self.network.inputs))
+        self.input_shape = self.network.inputs[self.input_name].shape
 
     def predict(self, image):
         '''
@@ -49,9 +50,9 @@ class Head_Pose_Estimation_Model:
         input_image = self.preprocess_input(image)
 
         input_dict={self.input_name:input_image}
-        self.exec_network.infer(input_dict)
+        outputs = self.exec_network.infer(input_dict)
 
-        yaw, pitch, roll = self.preprocess_output()
+        yaw, pitch, roll = self.preprocess_output(outputs)
 
         return yaw, pitch, roll
 
@@ -85,17 +86,13 @@ class Head_Pose_Estimation_Model:
 
         return p_frame
 
-    def preprocess_output(self):
+    def preprocess_output(self, outputs):
         '''
         Before feeding the output of this model to the next model,
         preprocess the output.
         '''
-        yaw = .0  # Axis of rotation: z
-        pitch = .0  # Axis of rotation: y
-        roll = .0  # Axis of rotation: x
-
-        yaw = self.exec_net.requests[self.cur_request_id].outputs['angle_y_fc'][0][0]
-        pitch = self.exec_net.requests[self.cur_request_id].outputs['angle_p_fc'][0][0]
-        roll = self.exec_net.requests[self.cur_request_id].outputs['angle_r_fc'][0][0]
+        yaw   = outputs['angle_y_fc'][0][0]
+        pitch = outputs['angle_p_fc'][0][0]
+        roll  = outputs['angle_r_fc'][0][0]
 
         return yaw, pitch, roll
