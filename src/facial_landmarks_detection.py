@@ -1,9 +1,10 @@
 import os
 import sys
 import logging as log
+import cv2
 from openvino.inference_engine import IENetwork, IECore
 
-class Facial_Landmarks_Detection_Model:
+class Facial_Landmarks_Detection:
     '''
     Class for the Facial Landmarks Detection Model.
     '''
@@ -41,10 +42,10 @@ class Facial_Landmarks_Detection_Model:
         log.info("IR successfully loaded into Inference Engine.")
 
         ### Get the input and output information
-        self.input_name = next(iter(self.model.inputs))
-        self.input_shape = self.model.inputs[self.input_name].shape
-        self.output_name = next(iter(self.model.outputs))
-        self.output_shape = self.model.outputs[self.output_name].shape
+        self.input_name = next(iter(self.network.inputs))
+        self.input_shape = self.network.inputs[self.input_name].shape
+        self.output_name = next(iter(self.network.outputs))
+        self.output_shape = self.network.outputs[self.output_name].shape
 
     def predict(self, image):
         '''
@@ -95,6 +96,7 @@ class Facial_Landmarks_Detection_Model:
         Before feeding the output of this model to the next model,
         preprocess the output.
         '''
-        outputs = outputs[0]
+        #  [[left0x, left0y], [left1x, left1y], [right0x, right0y], [right1x, right1y] ]
+        outputs = outputs[0][:8].reshape(4,2)
 
         return outputs
