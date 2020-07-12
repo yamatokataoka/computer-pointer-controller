@@ -1,2 +1,4 @@
 .Instructions.md.swp
 .ipynb_checkpoints
+__pycache__
+out.mp4
