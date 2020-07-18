@@ -1,3 +1,5 @@
+import logging as log
+import numpy as np
 from model import Model
 
 class Face_Detection(Model):
@@ -35,10 +37,14 @@ class Face_Detection(Model):
 
     def preprocess_output(self, outputs):
         '''
-        Before feeding the output of this model to the next model,
-        preprocess the output.
+        Return face bounding box coord with the highest confidence
         '''
         outputs = outputs[0][0]
-        outputs[outputs[:, 2] >= self.threshold]
+        # extract face only
+        face_detections = outputs[outputs[:,1]==1]
 
-        return outputs
+        face_detections = face_detections[face_detections[:,2]>=self.threshold]
+        face_detections = face_detections[np.argmax(face_detections[:,2])]
+        log.info("face_detections[2]: %s", face_detections[2])
+
+        return face_detections
