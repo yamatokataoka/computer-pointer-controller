@@ -47,3 +47,14 @@ class InputFeeder:
         if not self.input_type=='image':
             self.cap.release()
 
+    def getWidth(self):
+        '''
+        Get width of the input
+        '''
+        return int(self.cap.get(3))
+
+    def getHeight(self):
+        '''
+        Get height of the input
+        '''
+        return int(self.cap.get(4))
