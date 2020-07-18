@@ -30,13 +30,13 @@ class InputFeeder:
         else:
             self.cap=cv2.imread(self.input_file)
 
-    def next_batch(self):
+    def next_batch(self, batch_size):
         '''
         Returns the next image from either a video file or webcam.
         If input_type is 'image', then it returns the same image.
         '''
         while True:
-            for _ in range(10):
+            for _ in range(batch_size):
                 _, frame=self.cap.read()
             log.info("Current Frame: %s / %s", int(self.cap.get(1)), int(self.cap.get(7)))
             yield frame
