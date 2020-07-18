@@ -10,7 +10,7 @@ class Head_Pose_Estimation(Model):
         self.input_name = next(iter(self.network.inputs))
         self.input_shape = self.network.inputs[self.input_name].shape
         self.input_width = self.input_shape[2]
-        self.input_hight = self.input_shape[3]
+        self.input_height = self.input_shape[3]
         self.output_name = next(iter(self.network.outputs))
 
     def predict(self, image):
@@ -27,7 +27,7 @@ class Head_Pose_Estimation(Model):
         return yaw, pitch, roll
 
     def preprocess_input(self, image):
-        super().preprocess_input(image, self.input_hight, self.input_width)
+        super().preprocess_input(image, self.input_height, self.input_width)
 
     def preprocess_output(self, outputs):
         '''
