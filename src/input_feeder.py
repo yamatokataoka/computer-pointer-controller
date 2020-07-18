@@ -9,6 +9,7 @@ Sample usage:
 '''
 import cv2
 from numpy import ndarray
+import logging as log
 
 class InputFeeder:
     def __init__(self, input_type, input_file=None):
@@ -37,6 +38,7 @@ class InputFeeder:
         while True:
             for _ in range(10):
                 _, frame=self.cap.read()
+            log.info("Current Frame: %s / %s", int(self.cap.get(1)), int(self.cap.get(7)))
             yield frame
 
 
