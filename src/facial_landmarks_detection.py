@@ -28,7 +28,8 @@ class Facial_Landmarks_Detection(Model):
         return outputs
 
     def preprocess_input(self, image):
-        super().preprocess_input(image, self.input_height, self.input_width)
+        processed_image = super().preprocess_input(image, self.input_height, self.input_width)
+        return processed_image
 
     def preprocess_output(self, outputs):
         '''
