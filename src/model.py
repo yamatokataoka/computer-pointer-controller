@@ -43,7 +43,10 @@ class Model:
         '''
         ### Add a CPU extension, if applicable
         if self.extensions and "CPU" in self.device:
-            self.plugin.add_extension(self.extensions, self.device)
+            try:
+                self.plugin.add_extension(self.extensions, self.device)
+            except Exception as e:
+                log.error(e)
 
         ### Check for supported layers
         supported_layers = self.plugin.query_network(network=self.network, device_name=self.device)
