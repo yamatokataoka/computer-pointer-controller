@@ -24,7 +24,16 @@ python main.py
 After finishing the inference, you can check output video named `out.mp4` on the root directory.
 
 ## Documentation
-*TODO:* Include any documentation that users might need to better understand your project code. For instance, this is a good place to explain the command line arguments that your project supports.
+### The command line options
+All arguments are optional.
+
+| Argument          | Description                                | Default         |
+|-------------------|--------------------------------------------|-----------------|
+| -p / --input_path | The location of the input file             | ../bin/demo.mp4 |
+| -t / --input_type | Type of input, any of cam, video and image | video           |
+| -d / --device     | The device name                            | CPU             |
+| -b                | Draw bounding boxes                        | False           |
+| -g                | Draw gaze lines                            | False           |
 
 ## Benchmarks
 *TODO:* Include the benchmark results of running your model on multiple hardwares and multiple model precisions. Your benchmarks can include: model loading time, input/output processing time, model inference time etc.
