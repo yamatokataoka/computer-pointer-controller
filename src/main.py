@@ -4,8 +4,9 @@ from sys import platform
 import math
 import numpy as np
 import random
+import time
 import logging as log
-import pyautogui
+# import pyautogui
 
 from input_feeder import InputFeeder
 from face_detection import Face_Detection
@@ -13,9 +14,9 @@ from facial_landmarks_detection import Facial_Landmarks_Detection
 from head_pose_estimation import Head_Pose_Estimation
 from gaze_estimation import Gaze_Estimation
 
-from mouse_controller import MouseController
+# from mouse_controller import MouseController
 
-log.basicConfig(level=log.INFO)
+log.basicConfig(level=log.DEBUG)
 
 BATCH_SIZE = 30
 
@@ -24,8 +25,8 @@ FACIAL_LANDMARKS_DETECTION_LOCATION = "../intel/landmarks-regression-retail-0009
 HEAD_POSE_ESTIMATION_LOCATION = "../intel/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001.xml"
 GAZE_ESTIMATION_LOCATION = "../intel/gaze-estimation-adas-0002/FP32/gaze-estimation-adas-0002.xml"
 
-SCREEN_WIDTH = pyautogui.size().width
-SCREEN_HEIGHT = pyautogui.size().height
+SCREEN_WIDTH = 1920 # pyautogui.size().width
+SCREEN_HEIGHT = 1080 # pyautogui.size().height
 SCREEN_X_LIMITS = [20, SCREEN_WIDTH-20]
 SCREEN_Y_LIMITS = [20, SCREEN_HEIGHT-20]
 
@@ -165,9 +166,11 @@ def infer_on_video(args):
     input_height = feed.getHeight()
 
     # Create a video writer for the output video
-    # out = cv2.VideoWriter('../out.mp4', CODEC, 30, (input_width,input_height))
+    out = cv2.VideoWriter('../out.mp4', CODEC, 30, (input_width,input_height))
 
-    mouse_controller = MouseController(MOUSE_PRECISION, MOUSE_SPEED)
+    # mouse_controller = MouseController(MOUSE_PRECISION, MOUSE_SPEED)
+
+    start_model_load_time=time.time()
 
     # model initialization
     face_detection = Face_Detection(FACE_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
@@ -175,10 +178,16 @@ def infer_on_video(args):
     head_pose_estimation = Head_Pose_Estimation(HEAD_POSE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
     gaze_estimation = Gaze_Estimation(GAZE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
 
+    total_model_load_time = time.time() - start_model_load_time
+
+    counter = 0
+    start_inference_time = time.time()
+
     # Process frames until the video ends, or process is exited
     for ret, batch in feed.next_batch(BATCH_SIZE):
         if not ret:
             break
+        counter+=1
         gaze_lines = []
         out_frame = batch.copy()
 
@@ -265,21 +274,32 @@ def infer_on_video(args):
 
         log.debug("mouse_point[_X], mouse_point[_Y]: %s, %s", mouse_point[_X], mouse_point[_Y])
 
-        # cv2.circle(out_frame, mouse_point, 10, (255, 255, 255), -1)
-        mouse_controller.move(mouse_point[_X], mouse_point[_Y])
+        cv2.circle(out_frame, mouse_point, 10, (255, 255, 255), -1)
+        # mouse_controller.move(mouse_point[_X], mouse_point[_Y])
 
         # write out_frames with batch size
         for _ in range(BATCH_SIZE):
-            cv2.imshow("video", out_frame)
-            # out.write(out_frame)
+            # cv2.imshow("video", out_frame)
+            out.write(out_frame)
 
         if key==27:
             break
 
+    total_inference_time = time.time() - start_inference_time
+    total_inference_time = round(total_inference_time, 1)
+    log.info("total_inference_time: %s", total_inference_time)
+    log.info("counter: %s", counter)
+    fps = counter / total_inference_time
+
+    with open('../stats.txt', 'w') as f:
+        f.write(str(total_inference_time)+'\n')
+        f.write(str(fps)+'\n')
+        f.write(str(total_model_load_time)+'\n')
+
     # Release the out writer, capture, and destroy any OpenCV windows
     log.info("Input stream ended...")
-    cv2.destroyAllWindows()
-    # out.release()
+    # cv2.destroyAllWindows()
+    out.release()
     feed.close()
 
 
