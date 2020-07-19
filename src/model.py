@@ -52,12 +52,11 @@ class Model:
         supported_layers = self.plugin.query_network(network=self.network, device_name=self.device)
 
         ### Check for any unsupported layers, and let the user
-        ### know if anything is missing. Exit the program, if so.
+        ### know if anything is missing.
         unsupported_layers = [l for l in self.network.layers.keys() if l not in supported_layers]
         if len(unsupported_layers) != 0:
             log.warning("Unsupported layers found: {}".format(unsupported_layers))
             log.warning("Check whether extensions are available to add to IECore.")
-            exit(1)
 
     def preprocess_input(self, image, input_height, input_width):
         '''
