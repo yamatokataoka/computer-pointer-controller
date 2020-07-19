@@ -1,5 +1,6 @@
 import argparse
 import cv2
+import os
 from sys import platform
 import math
 import numpy as np
@@ -135,6 +136,7 @@ def get_args():
     d_desc = "The device name, if not 'CPU'"
     b_desc = "Draw bounding boxes"
     g_desc = "Draw gaze lines"
+    o_desc = "The location of the output files"
 
     # -- Add required and optional groups
     parser._action_groups.pop()
@@ -144,6 +146,7 @@ def get_args():
     optional.add_argument("-p", "--input_path", help=p_desc, default="../bin/demo.mp4")
     optional.add_argument("-t", "--input_type", help=t_desc, default="video")
     optional.add_argument("-d", "--device", help=d_desc, default='CPU')
+    optional.add_argument("-o", "--output_path", help=o_desc, default="../")
     optional.add_argument("-b", help=b_desc, action='store_true')
     optional.add_argument("-g", help=g_desc, action='store_true')
     args = parser.parse_args()
@@ -156,6 +159,7 @@ def infer_on_video(args):
     device = args.device
     input_path = args.input_path
     input_type = args.input_type
+    output_path = args.output_path
 
     # Initilize feeder
     feed = InputFeeder(input_type=input_type, input_file=input_path)
@@ -166,7 +170,7 @@ def infer_on_video(args):
     input_height = feed.getHeight()
 
     # Create a video writer for the output video
-    out = cv2.VideoWriter('../out.mp4', CODEC, 30, (input_width,input_height))
+    out = cv2.VideoWriter(os.path.join(output_path, 'out.mp4'), CODEC, 30, (input_width,input_height))
 
     # mouse_controller = MouseController(MOUSE_PRECISION, MOUSE_SPEED)
 
@@ -287,11 +291,9 @@ def infer_on_video(args):
 
     total_inference_time = time.time() - start_inference_time
     total_inference_time = round(total_inference_time, 1)
-    log.info("total_inference_time: %s", total_inference_time)
-    log.info("counter: %s", counter)
     fps = counter / total_inference_time
 
-    with open('../stats.txt', 'w') as f:
+    with open(os.path.join(output_path, 'stats.txt'), 'w') as f:
         f.write(str(total_inference_time)+'\n')
         f.write(str(fps)+'\n')
         f.write(str(total_model_load_time)+'\n')
