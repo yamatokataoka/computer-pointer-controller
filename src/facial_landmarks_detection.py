@@ -1,3 +1,5 @@
+import numpy as np
+import logging as log
 from model import Model
 
 class Facial_Landmarks_Detection(Model):
@@ -36,7 +38,9 @@ class Facial_Landmarks_Detection(Model):
         Before feeding the output of this model to the next model,
         preprocess the output.
         '''
-        #  [[left0x, left0y], [left1x, left1y], [right0x, right0y], [right1x, right1y] ]
-        outputs = outputs[0][:8].reshape(4,2)
+        outputs = np.squeeze(outputs)
+        eye1_coord = [outputs[0], outputs[1]]
+        eye2_coord = [outputs[2], outputs[3]]
+        eyes=[eye1_coord, eye2_coord]
 
-        return outputs
+        return eyes
