@@ -44,7 +44,7 @@ MOUSE_SPEED = 'medium'
 # Get correct CPU extension
 if platform == "linux" or platform == "linux2":
     CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so"
-    CODEC = 0x00000021
+    CODEC = cv2.VideoWriter_fourcc(*'avc1')
 elif platform == "darwin":
     CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension.dylib"
     CODEC = cv2.VideoWriter_fourcc('M','J','P','G')
