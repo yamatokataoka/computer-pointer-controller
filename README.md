@@ -8,27 +8,7 @@ This project requires OpenVINO™ toolkit to optimize and run machine learning m
 
 Follow [the documentation](https://docs.openvinotoolkit.org/latest/index.html) for OpenVINO™ toolkit here.
 
-Then download pre-trained models using OpenVINO™ toolkit on the project root directory.
-
-For Face Detection Model,
-```
-python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py --name "face-detection-adas-binary-0001"
-```
-
-For Facial Landmarks Detection Model,
-```
-python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py --name "landmarks-regression-retail-0009"
-```
-
-For Head Pose Estimation Model,
-```
-python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py --name "head-pose-estimation-adas-0001"
-```
-
-For Gaze Estimation Model,
-```
-python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py --name "gaze-estimation-adas-0002"
-```
+The pre-trained models for OpenVINO™ toolkit is on the project root directory.
 
 Install all the required Python modules on the project root directory.
 ```
