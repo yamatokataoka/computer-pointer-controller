@@ -21,10 +21,12 @@ log.basicConfig(level=log.DEBUG)
 
 BATCH_SIZE = 30
 
-FACE_DETECTION_LOCATION = "../intel/face-detection-adas-binary-0001/INT1/face-detection-adas-binary-0001.xml"
-FACIAL_LANDMARKS_DETECTION_LOCATION = "../intel/landmarks-regression-retail-0009/FP32/landmarks-regression-retail-0009.xml"
-HEAD_POSE_ESTIMATION_LOCATION = "../intel/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001.xml"
-GAZE_ESTIMATION_LOCATION = "../intel/gaze-estimation-adas-0002/FP32/gaze-estimation-adas-0002.xml"
+MODEL_PATH = "../intel/"
+
+FACE_DETECTION_MODEL = "face-detection-adas-binary-0001"
+FACIAL_LANDMARKS_DETECTION_MODEL = "landmarks-regression-retail-0009"
+HEAD_POSE_ESTIMATION_MODEL = "head-pose-estimation-adas-0001"
+GAZE_ESTIMATION_MODEL = "gaze-estimation-adas-0002"
 
 SCREEN_WIDTH = 1920 # pyautogui.size().width
 SCREEN_HEIGHT = 1080 # pyautogui.size().height
@@ -126,6 +128,23 @@ def get_mouse_point(gaze_mid_line, input_width, input_height):
 
     return (int(gaze_mid_line[1][_X]), int(gaze_mid_line[1][_Y]))
 
+def find_exist_model_file(precision, model_name):
+    precisions = ["INT8", "FP16", "FP32"]
+
+    if precision is None:
+        return os.path.join(MODEL_PATH, model_name, precisions[len(precisions)-1], model_name + ".xml")
+
+    if precision not in precisions:
+        log.error("%s is not correct precision", precision)
+        exit(1)
+
+    start_index = precisions.index(precision)
+
+    for i in range(start_index, len(precisions)):
+        location = os.path.join(MODEL_PATH, model_name, precisions[i], model_name + ".xml")
+        if os.path.exists(location):
+            return location
+
 def get_args():
     '''
     Gets the arguments from the command line.
@@ -136,6 +155,7 @@ def get_args():
     d_desc = "The device name, if not 'CPU'"
     b_desc = "Draw bounding boxes and gaze lines"
     o_desc = "The location of the output files"
+    a_desc = "The precision/accuracy for the models"
 
     # -- Add required and optional groups
     parser._action_groups.pop()
@@ -146,6 +166,7 @@ def get_args():
     optional.add_argument("-t", "--input_type", help=t_desc, default="video")
     optional.add_argument("-d", "--device", help=d_desc, default='CPU')
     optional.add_argument("-o", "--output_path", help=o_desc, default="../")
+    optional.add_argument("-a", "--accuracy", help=a_desc, default=None)
     optional.add_argument("-b", help=b_desc, action='store_true')
     args = parser.parse_args()
 
@@ -157,6 +178,17 @@ def infer_on_video(args):
     input_path = args.input_path
     input_type = args.input_type
     output_path = args.output_path
+    precision = args.accuracy
+
+    locations = {}
+
+    locations[FACE_DETECTION_MODEL] = os.path.join(MODEL_PATH, FACE_DETECTION_MODEL, 'INT1', FACE_DETECTION_MODEL + ".xml")
+
+    if precision is not None:
+        log.info("The face-detection-adas-binary-0001 always use INT1 precision")
+
+    for model_name in [FACIAL_LANDMARKS_DETECTION_MODEL, HEAD_POSE_ESTIMATION_MODEL, GAZE_ESTIMATION_MODEL]:
+        locations[model_name] = find_exist_model_file(precision, model_name)
 
     # Initilize feeder
     feed = InputFeeder(input_type=input_type, input_file=input_path)
@@ -174,10 +206,10 @@ def infer_on_video(args):
     start_model_load_time=time.time()
 
     # model initialization
-    face_detection = Face_Detection(FACE_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
-    facial_landmarks_detection = Facial_Landmarks_Detection(FACIAL_LANDMARKS_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
-    head_pose_estimation = Head_Pose_Estimation(HEAD_POSE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
-    gaze_estimation = Gaze_Estimation(GAZE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
+    face_detection = Face_Detection(locations[FACE_DETECTION_MODEL], device, extensions=CPU_EXTENSION)
+    facial_landmarks_detection = Facial_Landmarks_Detection(locations[FACIAL_LANDMARKS_DETECTION_MODEL], device, extensions=CPU_EXTENSION)
+    head_pose_estimation = Head_Pose_Estimation(locations[HEAD_POSE_ESTIMATION_MODEL], device, extensions=CPU_EXTENSION)
+    gaze_estimation = Gaze_Estimation(locations[GAZE_ESTIMATION_MODEL], device, extensions=CPU_EXTENSION)
 
     total_model_load_time = time.time() - start_model_load_time
 
