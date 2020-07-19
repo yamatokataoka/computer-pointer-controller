@@ -169,6 +169,12 @@ def infer_on_video(args):
 
     mouse_controller = MouseController(MOUSE_PRECISION, MOUSE_SPEED)
 
+    # model initialization
+    face_detection = Face_Detection(FACE_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
+    facial_landmarks_detection = Facial_Landmarks_Detection(FACIAL_LANDMARKS_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
+    head_pose_estimation = Head_Pose_Estimation(HEAD_POSE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
+    gaze_estimation = Gaze_Estimation(GAZE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
+
     # Process frames until the video ends, or process is exited
     for ret, batch in feed.next_batch(BATCH_SIZE):
         if not ret:
@@ -177,7 +183,8 @@ def infer_on_video(args):
         out_frame = batch.copy()
 
         key = cv2.waitKey(60)
-        face_detection = Face_Detection(FACE_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
+
+        # Face detection
         face_detection_output = face_detection.predict(batch)
 
         # face_detection_output = [ image_id, label, conf, xmin, ymin, xmax, ymax ]
@@ -196,11 +203,9 @@ def infer_on_video(args):
             cv2.rectangle(out_frame, (face_xmin, face_ymin), (face_xmax, face_ymax), (255,255,0), 2)
 
         # Find facial landmarks (to find eyes)
-        facial_landmarks_detection = Facial_Landmarks_Detection(FACIAL_LANDMARKS_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
         eyes = facial_landmarks_detection.predict(face)
 
         # Estimate head orientation (yaw=Y, pitch=X, role=Z)
-        head_pose_estimation = Head_Pose_Estimation(HEAD_POSE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
         yaw, pitch, roll = head_pose_estimation.predict(face)
 
         eye_images = []
@@ -226,7 +231,6 @@ def infer_on_video(args):
                               2)
 
         # gaze estimation
-        gaze_estimation = Gaze_Estimation(GAZE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
         gaze_vec_norm = gaze_estimation.predict(eye_images, [yaw, pitch, 0])
 
         cos = math.cos(math.radians(roll))
