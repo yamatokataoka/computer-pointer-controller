@@ -134,8 +134,7 @@ def get_args():
     p_desc = "The location of the input file"
     t_desc = "Type of input, any of cam, video and image"
     d_desc = "The device name, if not 'CPU'"
-    b_desc = "Draw bounding boxes"
-    g_desc = "Draw gaze lines"
+    b_desc = "Draw bounding boxes and gaze lines"
     o_desc = "The location of the output files"
 
     # -- Add required and optional groups
@@ -148,14 +147,12 @@ def get_args():
     optional.add_argument("-d", "--device", help=d_desc, default='CPU')
     optional.add_argument("-o", "--output_path", help=o_desc, default="../")
     optional.add_argument("-b", help=b_desc, action='store_true')
-    optional.add_argument("-g", help=g_desc, action='store_true')
     args = parser.parse_args()
 
     return args
 
 def infer_on_video(args):
-    boundary_box_flag = args.b
-    gaze_line_flag = args.g
+    draw_flag = args.b
     device = args.device
     input_path = args.input_path
     input_type = args.input_type
@@ -212,7 +209,7 @@ def infer_on_video(args):
         # Crop the face image
         face = batch[face_ymin:face_ymax, face_xmin:face_xmax]
 
-        if boundary_box_flag == True:
+        if draw_flag == True:
             cv2.rectangle(out_frame, (face_xmin, face_ymin), (face_xmax, face_ymax), (255,255,0), 2)
 
         # Find facial landmarks (to find eyes)
@@ -236,7 +233,7 @@ def infer_on_video(args):
             eye_images.append(face[eye_ymin:eye_ymax, eye_xmin:eye_xmax].copy())
 
             # Draw eye boundary boxes
-            if boundary_box_flag == True:
+            if draw_flag == True:
                 cv2.rectangle(out_frame,
                               (eye_xmin+face_xmin,eye_ymin+face_ymin),
                               (eye_xmax+face_xmin,eye_ymax+face_ymin),
@@ -258,7 +255,7 @@ def infer_on_video(args):
             eye[_Y] = int(eye[_Y] * face_height)
             gaze_lines.append(get_gaze_line(eye, face_xmin, face_ymin, gaze_vec_norm))
 
-        if gaze_line_flag:
+        if draw_flag:
             # Drawing gaze lines
             for gaze_line in gaze_lines:
                 start_point = (gaze_line[0][_X], gaze_line[0][_Y])
