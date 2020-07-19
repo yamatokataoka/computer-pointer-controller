@@ -46,6 +46,5 @@ class Face_Detection(Model):
 
         face_detections = face_detections[face_detections[:,2]>=self.threshold]
         face_detections = face_detections[np.argmax(face_detections[:,2])]
-        log.info("face_detections[2]: %s", face_detections[2])
 
         return face_detections
