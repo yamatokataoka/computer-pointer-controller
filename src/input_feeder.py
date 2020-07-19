@@ -29,7 +29,7 @@ class InputFeeder:
         while True:
             for _ in range(batch_size):
                 ret, frame=self.cap.read()
-            log.info("Current Frame: %s / %s", int(self.cap.get(1)), int(self.cap.get(7)))
+            log.info("Current Frame: %s / %s", int(self.cap.get(cv2.CAP_PROP_POS_FRAMES)), int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)))
             yield ret, frame
 
 
