@@ -39,8 +39,35 @@ All arguments are optional.
 ### Directory Structure
 #### The top-level directory layout
 
+```
+.
+├── bin               # Binary files demo.mp4 etc.
+├── docs              # Documents related files
+├── intel             # Intel pre-trained models
+├── src               # Source files
+├── requirements.txt  # Python packages
+└── README.md
+```
 
-After running the app, output
+After running the app, output video file named `out.mp4` by default.
+
+#### Source files
+
+```
+.
+├── face_detection.py
+├── facial_landmarks_detection.py
+├── gaze_estimation.py
+├── head_pose_estimation.py
+├── input_feeder.py
+├── main.py
+├── model.py
+└── mouse_controller.py
+```
+
+`src/` contains all application for this project. It's got all the logic, model loading and inference, and mouse pointer moving. All of it gets used on your computer.
+
+The main entrypoint is [main.py](src/main.py).
 
 ## Benchmarks
 ### Total Inference Time in Seconds
