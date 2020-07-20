@@ -46,13 +46,13 @@ All arguments are optional.
 ![fp32_loading_time](docs/model_load_time_int8-fp16-fp32.png)
 
 ## Results
-The benchmark runs on four different hardware types, CPU, GPU, VPU, and FPGA with three precisions, FP32, FP16, and INT8.
+The benchmark runs on four different hardware types, CPU, GPU, (VPU), and FPGA with three precisions, FP32, FP16, and INT8.
 
 | Hardware Type | Device                                |
 |---------------|---------------------------------------|
 | CPU           | Intel Core™ i5-6500TE processor       |
 | GPU           | Intel® HD Graphics 530 integrated GPU |
-| VPU           | Intel Neural Compute Stick 2          |
+| (VPU)           | Intel Neural Compute Stick 2          |
 | FPGA          | IEI Mustang-F100-A10 FPGA card        |
 
 This benchmark uses [IEI Tank* 870-Q170](https://software.intel.com/en-us/iot/hardware/iei-tank-dev-kit-core) as an edge node and all devices will failback to Intel Core™ i5-6500TE CPU.
@@ -67,3 +67,9 @@ Finally, all three bar charts show that an increase of precision leads to little
 
 ## Notes
 Please note The face-detection-adas-binary-0001 always use INT1 precision as it is only available on the precision. The VPU, Neural Compute Stick 2 only supports FP16 precision and also the FPGA doesn't support INT8 precision. So these devices are skipped. In addition, the landmarks-regression-retail-0009 and head-pose-estimation-adas-0001 are only available with FP16 and FP32 precision.
+
+## Improvement
+
+Currently, the performance benchmark was not done on VPU because it only supports FP16 precision. Unfortunately, the face-detection-adas-binary-0001 is available only INT1.
+
+The face detection model with FP16 precision will enrich the above performance benchmark result.
