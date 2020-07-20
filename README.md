@@ -49,8 +49,6 @@ All arguments are optional.
 └── README.md
 ```
 
-After running the app, output video file named `out.mp4` by default.
-
 #### Source files
 
 ```
