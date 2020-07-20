@@ -3,3 +3,4 @@
 __pycache__
 out.mp4
 /stats.txt
+.DS_Store
