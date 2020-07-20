@@ -1,5 +1,5 @@
-.Instructions.md.swp
+*.swp
 .ipynb_checkpoints
 __pycache__
 out.mp4
-stats.txt
+/stats.txt
