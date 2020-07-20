@@ -1,9 +1,11 @@
 import argparse
 import cv2
+import os
 from sys import platform
 import math
 import numpy as np
 import random
+import time
 import logging as log
 import pyautogui
 
@@ -19,13 +21,15 @@ log.basicConfig(level=log.INFO)
 
 BATCH_SIZE = 30
 
-FACE_DETECTION_LOCATION = "../intel/face-detection-adas-binary-0001/INT1/face-detection-adas-binary-0001.xml"
-FACIAL_LANDMARKS_DETECTION_LOCATION = "../intel/landmarks-regression-retail-0009/FP32/landmarks-regression-retail-0009.xml"
-HEAD_POSE_ESTIMATION_LOCATION = "../intel/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001.xml"
-GAZE_ESTIMATION_LOCATION = "../intel/gaze-estimation-adas-0002/FP32/gaze-estimation-adas-0002.xml"
+MODEL_PATH = "../intel/"
 
-SCREEN_WIDTH = pyautogui.size().width
-SCREEN_HEIGHT = pyautogui.size().height
+FACE_DETECTION_MODEL = "face-detection-adas-binary-0001"
+FACIAL_LANDMARKS_DETECTION_MODEL = "landmarks-regression-retail-0009"
+HEAD_POSE_ESTIMATION_MODEL = "head-pose-estimation-adas-0001"
+GAZE_ESTIMATION_MODEL = "gaze-estimation-adas-0002"
+
+SCREEN_WIDTH = 1920 # pyautogui.size().width
+SCREEN_HEIGHT = 1080 # pyautogui.size().height
 SCREEN_X_LIMITS = [20, SCREEN_WIDTH-20]
 SCREEN_Y_LIMITS = [20, SCREEN_HEIGHT-20]
 
@@ -42,7 +46,7 @@ MOUSE_SPEED = 'medium'
 # Get correct CPU extension
 if platform == "linux" or platform == "linux2":
     CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so"
-    CODEC = 0x00000021
+    CODEC = cv2.VideoWriter_fourcc(*'avc1')
 elif platform == "darwin":
     CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension.dylib"
     CODEC = cv2.VideoWriter_fourcc('M','J','P','G')
@@ -124,6 +128,23 @@ def get_mouse_point(gaze_mid_line, input_width, input_height):
 
     return (int(gaze_mid_line[1][_X]), int(gaze_mid_line[1][_Y]))
 
+def find_exist_model_file(precision, model_name):
+    precisions = ["INT8", "FP16", "FP32"]
+
+    if precision is None:
+        return os.path.join(MODEL_PATH, model_name, precisions[len(precisions)-1], model_name + ".xml")
+
+    if precision not in precisions:
+        log.error("%s is not correct precision", precision)
+        exit(1)
+
+    start_index = precisions.index(precision)
+
+    for i in range(start_index, len(precisions)):
+        location = os.path.join(MODEL_PATH, model_name, precisions[i], model_name + ".xml")
+        if os.path.exists(location):
+            return location
+
 def get_args():
     '''
     Gets the arguments from the command line.
@@ -132,8 +153,9 @@ def get_args():
     p_desc = "The location of the input file"
     t_desc = "Type of input, any of cam, video and image"
     d_desc = "The device name, if not 'CPU'"
-    b_desc = "Draw bounding boxes"
-    g_desc = "Draw gaze lines"
+    b_desc = "Draw bounding boxes and gaze lines"
+    o_desc = "The location of the output files"
+    a_desc = "The precision/accuracy for the models"
 
     # -- Add required and optional groups
     parser._action_groups.pop()
@@ -143,18 +165,30 @@ def get_args():
     optional.add_argument("-p", "--input_path", help=p_desc, default="../bin/demo.mp4")
     optional.add_argument("-t", "--input_type", help=t_desc, default="video")
     optional.add_argument("-d", "--device", help=d_desc, default='CPU')
+    optional.add_argument("-o", "--output_path", help=o_desc, default="../")
+    optional.add_argument("-a", "--accuracy", help=a_desc, default=None)
     optional.add_argument("-b", help=b_desc, action='store_true')
-    optional.add_argument("-g", help=g_desc, action='store_true')
     args = parser.parse_args()
 
     return args
 
 def infer_on_video(args):
-    boundary_box_flag = args.b
-    gaze_line_flag = args.g
+    draw_flag = args.b
     device = args.device
     input_path = args.input_path
     input_type = args.input_type
+    output_path = args.output_path
+    precision = args.accuracy
+
+    locations = {}
+
+    locations[FACE_DETECTION_MODEL] = os.path.join(MODEL_PATH, FACE_DETECTION_MODEL, 'INT1', FACE_DETECTION_MODEL + ".xml")
+
+    if precision is not None:
+        log.info("The face-detection-adas-binary-0001 always use INT1 precision")
+
+    for model_name in [FACIAL_LANDMARKS_DETECTION_MODEL, HEAD_POSE_ESTIMATION_MODEL, GAZE_ESTIMATION_MODEL]:
+        locations[model_name] = find_exist_model_file(precision, model_name)
 
     # Initilize feeder
     feed = InputFeeder(input_type=input_type, input_file=input_path)
@@ -169,16 +203,24 @@ def infer_on_video(args):
 
     mouse_controller = MouseController(MOUSE_PRECISION, MOUSE_SPEED)
 
+    start_model_load_time=time.time()
+
     # model initialization
-    face_detection = Face_Detection(FACE_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
-    facial_landmarks_detection = Facial_Landmarks_Detection(FACIAL_LANDMARKS_DETECTION_LOCATION, device, extensions=CPU_EXTENSION)
-    head_pose_estimation = Head_Pose_Estimation(HEAD_POSE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
-    gaze_estimation = Gaze_Estimation(GAZE_ESTIMATION_LOCATION, device, extensions=CPU_EXTENSION)
+    face_detection = Face_Detection(locations[FACE_DETECTION_MODEL], device, extensions=CPU_EXTENSION)
+    facial_landmarks_detection = Facial_Landmarks_Detection(locations[FACIAL_LANDMARKS_DETECTION_MODEL], device, extensions=CPU_EXTENSION)
+    head_pose_estimation = Head_Pose_Estimation(locations[HEAD_POSE_ESTIMATION_MODEL], device, extensions=CPU_EXTENSION)
+    gaze_estimation = Gaze_Estimation(locations[GAZE_ESTIMATION_MODEL], device, extensions=CPU_EXTENSION)
+
+    total_model_load_time = time.time() - start_model_load_time
+
+    counter = 0
+    start_inference_time = time.time()
 
     # Process frames until the video ends, or process is exited
     for ret, batch in feed.next_batch(BATCH_SIZE):
         if not ret:
             break
+        counter+=1
         gaze_lines = []
         out_frame = batch.copy()
 
@@ -199,7 +241,7 @@ def infer_on_video(args):
         # Crop the face image
         face = batch[face_ymin:face_ymax, face_xmin:face_xmax]
 
-        if boundary_box_flag == True:
+        if draw_flag == True:
             cv2.rectangle(out_frame, (face_xmin, face_ymin), (face_xmax, face_ymax), (255,255,0), 2)
 
         # Find facial landmarks (to find eyes)
@@ -223,7 +265,7 @@ def infer_on_video(args):
             eye_images.append(face[eye_ymin:eye_ymax, eye_xmin:eye_xmax].copy())
 
             # Draw eye boundary boxes
-            if boundary_box_flag == True:
+            if draw_flag == True:
                 cv2.rectangle(out_frame,
                               (eye_xmin+face_xmin,eye_ymin+face_ymin),
                               (eye_xmax+face_xmin,eye_ymax+face_ymin),
@@ -245,7 +287,7 @@ def infer_on_video(args):
             eye[_Y] = int(eye[_Y] * face_height)
             gaze_lines.append(get_gaze_line(eye, face_xmin, face_ymin, gaze_vec_norm))
 
-        if gaze_line_flag:
+        if draw_flag:
             # Drawing gaze lines
             for gaze_line in gaze_lines:
                 start_point = (gaze_line[0][_X], gaze_line[0][_Y])
@@ -275,6 +317,15 @@ def infer_on_video(args):
 
         if key==27:
             break
+
+    total_inference_time = time.time() - start_inference_time
+    total_inference_time = round(total_inference_time, 1)
+    fps = counter / total_inference_time
+
+    with open(os.path.join(output_path, 'stats.txt'), 'w') as f:
+        f.write(str(total_inference_time)+'\n')
+        f.write(str(fps)+'\n')
+        f.write(str(total_model_load_time)+'\n')
 
     # Release the out writer, capture, and destroy any OpenCV windows
     log.info("Input stream ended...")
