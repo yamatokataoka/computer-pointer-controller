@@ -47,15 +47,6 @@ All arguments are optional.
 ![fp32_loading_time](docs/model_load_time_int8-fp16-fp32.png)
 
 ## Results
-The benchmark runs on four different hardware types, CPU, GPU, VPU and FPGA with three precisions, FP32, FP16 and INT8.
-
-| Hardware Type | Device                                |
-|---------------|---------------------------------------|
-| CPU           | Intel Core™ i5-6500TE processor       |
-| GPU           | Intel® HD Graphics 530 integrated GPU |
-| VPU           | Intel Neural Compute Stick 2          |
-| FPGA          | IEI Mustang-F100-A10 FPGA card        |
-
 The benchmark runs on four different hardware types, CPU, GPU, VPU, and FPGA with three precisions, FP32, FP16, and INT8.
 
 | Hardware Type | Device                                |
