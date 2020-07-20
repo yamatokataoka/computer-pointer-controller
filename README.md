@@ -27,13 +27,14 @@ After finishing the inference, you can check output video named `out.mp4` on the
 ### The command line options
 All arguments are optional.
 
-| Argument          | Description                                | Default         |
-|-------------------|--------------------------------------------|-----------------|
-| -p / --input_path | The location of the input file             | ../bin/demo.mp4 |
-| -t / --input_type | Type of input, any of cam, video and image | video           |
-| -d / --device     | The device name                            | CPU             |
-| -b                | Draw bounding boxes                        | False           |
-| -g                | Draw gaze lines                            | False           |
+| Argument           | Description                                | Default         |
+|--------------------|--------------------------------------------|-----------------|
+| -p / --input_path  | The location of the input file             | ../bin/demo.mp4 |
+| -t / --input_type  | Type of input, any of cam, video and image | video           |
+| -d / --device      | The device name                            | CPU             |
+| -b                 | Draw bounding boxes and gaze lines         | False           |
+| -o / --output_path | The location of the output files           | ../             |
+| -a / --accuracy    | The precision/accuracy for the models      | None            |
 
 ## Benchmarks
 ### Total Inference Time in Seconds
